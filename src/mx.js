@@ -13,6 +13,8 @@ import shortid from 'shortid';
 //   );
 // };
 
+const signIn = (email, password) => firebase.auth().signInWithEmailAndPassword(email, password);
+
 const init = (config) => firebase.initializeApp(config);
 
 // var config = {
@@ -140,6 +142,7 @@ const collection = (collectionName) => {
 
 const mxFirebase = {
   init,
+  signIn,
   collection,
 };
 
