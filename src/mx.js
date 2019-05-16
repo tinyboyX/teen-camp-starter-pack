@@ -1,58 +1,55 @@
 import firebase from "firebase";
+import shortid from 'shortid';
 
-var config = {
-  apiKey: "AIzaSyBPYNsWiUMyahGHOQXNKGZYRAD8k1DGiNQ",
-  authDomain: "camp-2019.firebaseapp.com",
-  databaseURL: "https://camp-2019.firebaseio.com",
-  projectId: "camp-2019",
-  storageBucket: "camp-2019.appspot.com",
-  messagingSenderId: "580757596336"
-};
+// firebase.constructor.prototype.putFiles = (files) => {
+//   var ref = firebase.storage().ref();
+//   return Promise.all(
+//     Object.values(files).map(function (file) {
+//       return ref
+//         .child(`${shortid.generate()}-${file.name}`)
+//         .put(file)
+//         .then((r) => r.ref.getDownloadURL());
+//     }),
+//   );
+// };
 
-const init = () => firebase.initializeApp(config);
+const init = (config) => firebase.initializeApp(config);
 
-init()
+// var config = {
+//   apiKey: "AIzaSyBPYNsWiUMyahGHOQXNKGZYRAD8k1DGiNQ",
+//   authDomain: "camp-2019.firebaseapp.com",
+//   databaseURL: "https://camp-2019.firebaseio.com",
+//   projectId: "camp-2019",
+//   storageBucket: "camp-2019.appspot.com",
+//   messagingSenderId: "580757596336"
+// };
 
-firebase.storage().ref().constructor.prototype.putFiles = function (files) {
-  var ref = this;
-  return Promise.all(
-    Object.values(files).map(function (file) {
-      return ref
-        .child(`${shortid.generate()}-${file.name}`)
-        .put(file)
-        .then((r) => r.ref.getDownloadURL());
-    }),
-  );
-};
+// firebase.initializeApp(config);
 
 
-export class FirebaseModel {
-  constructor(collectionName) {
-    this.db = firebase.firestore();
-    this.collection = this.db.collection(collectionName)
-  }
-
-  getAll() {
-    const data = []
-    this.collection.get().then(query => {
-      query.forEach(doc => {
-        const snapshot = doc.data()
-        snapshot._id = doc.id
-        data.push(snapshot)
-      });
+const collection = (collectionName) => {
+  const db = firebase.firestore();
+  const firebaseCollection = db.collection(collectionName);
+  const getAll = async () => {
+    const data = [];
+    const query = await firebaseCollection.get();
+    query.forEach(doc => {
+      const snapshot = doc.data()
+      snapshot._id = doc.id
+      data.push(snapshot);
     });
-    return data
+    return data;
   }
 
-  async count(res) {
+  const count = async (res) => {
     const r = await res.get();
     return r.docs.length;
   }
   
-  async paginate(query, pageNumber, perPage, populate="") {
+  const paginate = async (query, pageNumber, perPage, populate="") => {
     const data = [];
     const queryValue = [];
-    let res = this.collection;
+    let res = firebaseCollection;
 
     for (let key in query) {
       res = res.orderBy(key);
@@ -65,7 +62,7 @@ export class FirebaseModel {
         .endAt(...queryValue)
     }
 
-    const total = await this.count(res)
+    const total = await count(res)
 
     res = await res
       .limit(perPage*pageNumber)
@@ -88,33 +85,32 @@ export class FirebaseModel {
         }
       }
     }
-    
     return {data, total}
   }
 
-  async getOne(_id) {
+  const getOne = async (_id) => {
     let data;
-    await this.collection.doc(_id).get().then(query => {
+    await firebaseCollection.doc(_id).get().then(query => {
       data = { ...query.data(), _id: query.id }
     });
     return data
   }
 
-  getOneAndPopulate(_id, populatePath) {
+  const getOneAndPopulate = (_id, populatePath) => {
     return new Promise(async (resolve, reject) => {
       let data = await this.getOne(_id);
-      if(data.userRef) {
-        const user = await data.userRef.get();
-        data.userRef = user.data();
+      if(data[populatePath]) {
+        const child = await data[populatePath].get();
+        data[populatePath] = child.data();
       }
       resolve(data);
-      })
+    });
   }
 
-  save(data) {
+  const save = (data) => {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.collection.doc().set(data);
+        await firebaseCollection.doc().set(data);
         resolve(data);
       } catch (error) {
         reject(error);
@@ -122,18 +118,30 @@ export class FirebaseModel {
     });
   }
 
-  saveWithId (_id, data) {
+  const saveWithId = (_id, data) => {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.collection.doc(_id).set(data);
+        await firebaseCollection.doc(_id).set(data);
         resolve(data);
       } catch (error) {
         reject(error);
       }
     });
   }
+  return {
+    getAll,
+    getOne,
+    getOneAndPopulate,
+    paginate,
+    save,
+    saveWithId,
+  };
+};
 
-}
+const mxFirebase = {
+  init,
+  collection,
+};
 
 const openModal = (modal, overlay) => {
   overlay.classList.add('is-open');
@@ -145,7 +153,7 @@ const closeModal = (modal, overlay) => {
   modal.classList.remove('is-open');
 };
 
-export const initModal = modal => {
+const initModal = modal => {
   if (!modal) {
     console.error("You need to provide `modal element`");
   } else {
@@ -169,4 +177,4 @@ function waitFor(seconds) {
 }
 
 
-export const fireBase = firebase;
+export { mxFirebase, initModal, openModal, closeModal, waitFor };
