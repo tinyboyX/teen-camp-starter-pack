@@ -7,6 +7,9 @@ module.exports = {
     app: './src/index.js',
     polyfill: 'babel-polyfill',
   },
+  devServer: {
+    historyApiFallback: true
+  },
   module: {
     rules: [
       {
