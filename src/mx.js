@@ -1,19 +1,49 @@
 import firebase from "firebase";
 import shortid from 'shortid';
 
-// firebase.constructor.prototype.putFiles = (files) => {
-//   var ref = firebase.storage().ref();
-//   return Promise.all(
-//     Object.values(files).map(function (file) {
-//       return ref
-//         .child(`${shortid.generate()}-${file.name}`)
-//         .put(file)
-//         .then((r) => r.ref.getDownloadURL());
-//     }),
-//   );
-// };
+
+const putFiles = (files) => {
+  var ref = firebase.storage().ref();
+  return Promise.all(
+    Object.values(files).map(function (file) {
+      return ref
+        .child(`${shortid.generate()}-${file.name}`)
+        .put(file)
+        .then((r) => r.ref.getDownloadURL());
+    }),
+  );
+};
+
+const initImgUpload = () => {
+  document.querySelectorAll('.mx-img-upload').forEach(elem => {
+    const preview = document.createElement('img');
+    preview.classList.add('mx-img-preview');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.classList.add('mx-input-file');
+    elem.appendChild(preview);
+    elem.appendChild(input);
+    input.addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          preview.src = reader.result;
+          preview.style.display = 'block';
+        }
+
+        reader.readAsDataURL(file);
+      } else {
+        preview.src = "";
+        preview.style.display = 'none';
+      }
+    });
+  });
+}
 
 const signIn = (email, password) => firebase.auth().signInWithEmailAndPassword(email, password);
+
 
 const init = (config) => firebase.initializeApp(config);
 
@@ -143,6 +173,7 @@ const collection = (collectionName) => {
 const mxFirebase = {
   init,
   signIn,
+  putFiles,
   collection,
 };
 
@@ -180,4 +211,4 @@ function waitFor(seconds) {
 }
 
 
-export { mxFirebase, initModal, openModal, closeModal, waitFor };
+export { mxFirebase, initModal, openModal, closeModal, waitFor, initImgUpload };

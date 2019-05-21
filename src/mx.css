@@ -1643,3 +1643,14 @@
     height: auto;
   }
 }
+
+.mx-img-upload {
+  position: relative;
+}
+
+.mx-img-upload .mx-img-preview {
+  display: none;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  position: absolute;
+}
