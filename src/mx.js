@@ -1,6 +1,9 @@
 import firebase from "firebase";
 import shortid from 'shortid';
 
+// firebase.constructor.prototype.putFiles = 
+
+const signIn = async (email, password) => await firebase.auth().signInWithEmailAndPassword(email, password);
 
 const putFiles = (files) => {
   var ref = firebase.storage().ref();
@@ -13,37 +16,6 @@ const putFiles = (files) => {
     }),
   );
 };
-
-const initImgUpload = () => {
-  document.querySelectorAll('.mx-img-upload').forEach(elem => {
-    const preview = document.createElement('img');
-    preview.classList.add('mx-img-preview');
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.classList.add('mx-input-file');
-    elem.appendChild(preview);
-    elem.appendChild(input);
-    input.addEventListener('change', event => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-
-        reader.onloadend = () => {
-          preview.src = reader.result;
-          preview.style.display = 'block';
-        }
-
-        reader.readAsDataURL(file);
-      } else {
-        preview.src = "";
-        preview.style.display = 'none';
-      }
-    });
-  });
-}
-
-const signIn = (email, password) => firebase.auth().signInWithEmailAndPassword(email, password);
-
 
 const init = (config) => firebase.initializeApp(config);
 
@@ -73,12 +45,14 @@ const collection = (collectionName) => {
     return data;
   }
 
+  
+
   const count = async (res) => {
     const r = await res.get();
     return r.docs.length;
   }
   
-  const paginate = async (query, pageNumber, perPage, populate="") => {
+  const paginate = async (pageNumber, perPage, query, populate="") => {
     const data = [];
     const queryValue = [];
     let res = firebaseCollection;
@@ -167,6 +141,7 @@ const collection = (collectionName) => {
     paginate,
     save,
     saveWithId,
+    putFiles,
   };
 };
 
@@ -210,5 +185,39 @@ function waitFor(seconds) {
   });
 }
 
+const initImgUpload = () => {
+  document.querySelectorAll('.mx-img-upload').forEach(elem => {
+    const preview = document.createElement('img');
+    preview.classList.add('mx-img-preview');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.classList.add('mx-input-file');
+    elem.appendChild(preview);
+    elem.appendChild(input);
+    input.addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
 
-export { mxFirebase, initModal, openModal, closeModal, waitFor, initImgUpload };
+        reader.onloadend = () => {
+          preview.src = reader.result;
+          preview.style.display = 'block';
+        }
+
+        reader.readAsDataURL(file);
+      } else {
+        preview.src = "";
+        preview.style.display = 'none';
+      }
+    });
+  });
+}
+
+export {
+  mxFirebase,
+  initModal,
+  openModal,
+  closeModal,
+  waitFor,
+  initImgUpload
+};
