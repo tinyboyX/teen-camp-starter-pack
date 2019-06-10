@@ -19,7 +19,21 @@ mxFirebase.init(firebaseConfig);
 
 route.base("/")
 route("/signin",() =>{
-    riot.mount("#root","signin")    
+    riot.mount("#root","signin");
+    var signinBtn = document.getElementById("signin_btn");
+    var signin_alert = document.getElementById("signin_alert");
+    document.querySelector('#signin').onclick = async () => {
+      try {
+        await mxFirebase.signIn(document.querySelector('#em').value, document.querySelector('#pass').value);
+        signin_alert.innerHTML = "You will live";
+        localStorage.setItem('username', document.querySelector('#em').value);
+        let username = document.querySelector('#em').value;
+        console.log("success");
+        
+      } catch (e) {
+        signin_alert.innerHTML = err;
+      }
+    }
 });
 route.start(true);
 
